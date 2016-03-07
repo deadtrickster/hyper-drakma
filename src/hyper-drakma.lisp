@@ -5,7 +5,7 @@
   (:shadow :get)
   (:nicknames :hdrakma)
   (:export #:get
-           #:response.follow
+           #:follow
            #:response-body
            #:response-headers))
 
@@ -38,8 +38,13 @@
     (get-links-from-headers (response-headers instance) links)
     (setf (slot-value instance 'links) links)))
 
-(defun response.follow (response link &optional args)
+(defmethod follow ((response response) link &optional args)
   (if-let ((href (gethash link (response-links response))))
+    (get (uri-template:expand href args))
+    (error "Unknown link ~a" link)))
+
+(defmethod follow ((item hash-table) link &optional args)
+  (if-let ((href (gethash (concatenate 'string link "_url") item)))
     (get (uri-template:expand href args))
     (error "Unknown link ~a" link)))
 
